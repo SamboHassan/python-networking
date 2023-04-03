@@ -51,4 +51,22 @@ class AS_Server:
         self._server.close()
 
     def _recv_data(self, conn, addr):
-        pass
+        try:
+            logger.debug(f"[{addr}] WAITING TO RECEIVE STREAM.")
+            full_msg = b""
+            while True:
+                msg = conn.recv(self._buffer_size)
+                if msg == 0:
+                    raise BrokenPipeError
+                full_msg += msg
+
+                if full_msg.endswith(b"\x00") or (len(msg) < self._buffer_size):
+                    search_str = full_msg.rstrip(b"\00x")
+                    break
+                return search_str
+        except AttributeError:
+            logger.exception("The parameter, 'conn' should be a connection")
+            raise
+        except BrokenPipeError:
+            logger.exception("Clinet has disconnected")
+            raise
