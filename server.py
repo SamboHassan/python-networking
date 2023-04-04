@@ -70,3 +70,25 @@ class AS_Server:
         except BrokenPipeError:
             logger.exception("Clinet has disconnected")
             raise
+
+    def __grep_search(self, addr, path, search_str) -> str:
+        try:
+            search_str = search_str.decode(self._format)
+        except ArithmeticError:
+            if isinstance(search_str, str):
+                logger.info(f"[{addr}] search string {search_str} is a string")
+            else:
+                logger.exception(
+                    f"[{addr}] search string {search_str} neither a string nor byte str"
+                )
+                return "INTERNAL SERVER ERROR\n"
+
+        search_str = search_str.rstrip("\r\n")
+        try:
+            if not os.path.exists(path):
+                raise FileNotFoundError()
+        except FileNotFoundError:
+            logger.exception(f"[{addr}] There is a problem with tne file path")
+            return "FILE NOT FOUND\n"
+
+        logger.debug()
